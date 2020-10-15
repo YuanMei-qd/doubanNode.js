@@ -20,7 +20,7 @@ app.all('*', function (req, res, next) {
     res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
     next();
-});
+}); 
 
 // router.all('*', function (req, res, next) { // '*'代表所有的访问者都能访问(解决跨域问题)
 
@@ -94,6 +94,32 @@ app.delete('/source/delete', function(req, res){
         } else{
             res.send("删除成功")
         }
+    });
+});
+
+//根据类型查找
+// let type = ["2","1"]
+app.get('/getSource/type', function (req, res) {
+    // console.log(req.query.type);
+    let type = req.query.type;
+    let selectString = `type=${type[0]}`;
+    type.shift();
+    type.forEach(item => {
+        selectString = selectString +` or type=${item}`
+    });
+    console.log(selectString)
+    connection.query(`select * from allWorks where ${selectString}`, function (err, rows, fields) {
+        if (err) throw err;
+        rows.sort((a,b) => {
+            return a.code - b.code
+        })
+        console.log(rows);
+        res.send(
+            {
+                status: 200,
+                data: rows
+            }
+        );
     });
 });
 
