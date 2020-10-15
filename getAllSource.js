@@ -102,25 +102,36 @@ app.delete('/source/delete', function(req, res){
 app.get('/getSource/type', function (req, res) {
     // console.log(req.query.type);
     let type = req.query.type;
-    let selectString = `type=${type[0]}`;
-    type.shift();
-    type.forEach(item => {
-        selectString = selectString +` or type=${item}`
-    });
-    console.log(selectString)
-    connection.query(`select * from allWorks where ${selectString}`, function (err, rows, fields) {
-        if (err) throw err;
-        rows.sort((a,b) => {
-            return a.code - b.code
-        })
-        console.log(rows);
+    if(type){
+            // console.log(req.query.type);
+        let selectString = `type=${type[0]}`;
+        type.shift();
+        type.forEach(item => {
+            selectString = selectString +` or type=${item}`
+        });
+        console.log(selectString)
+        connection.query(`select * from allWorks where ${selectString}`, function (err, rows, fields) {
+            if (err) throw err;
+            rows.sort((a,b) => {
+                return a.code - b.code
+            })
+            console.log(rows);
+            res.send(
+                {
+                    status: 200,
+                    data: rows
+                }
+            );
+        });
+    } else{
         res.send(
             {
                 status: 200,
-                data: rows
+                data: []
             }
         );
-    });
+    }
+   
 });
 
 
