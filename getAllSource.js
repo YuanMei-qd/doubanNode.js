@@ -134,6 +134,18 @@ app.get('/getSource/type', function (req, res) {
    
 });
 
+//验证登录名密码
+app.post('/login', function (req, res) {
+    console.log(req.query)
+    connection.query(`select password="${req.query.password}" from userMessage where userName="${req.query.userName}"`, function (err, result) {
+        if (err) throw err;
+        console.log(result);
+        if(result){
+            res.send("验证通过")
+        }
+       
+    });
+});
 
 //配置服务端口
 var server = app.listen(4000, function () {
