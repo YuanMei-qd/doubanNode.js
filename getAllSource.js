@@ -137,19 +137,90 @@ app.get('/getSource/type', function (req, res) {
 //验证登录名密码
 app.post('/login', function (req, res) {
     // console.log(req.query)
-    connection.query(`select password="${req.query.password}" from userMessage where userName="${req.query.userName}"`, function (err, result) {
+    connection.query(`select * from userMessage where userName="${req.query.userName}"`, function (err, result) {
         if (err) throw err;
-        // console.log( "result",Object.values(result[0])[0],result[0]);
-        if(Object.values(result[0])[0]){
-            res.send({
-                sucess:true
-            })
+        // console.log( "result",result[0]);
+        if(result[0].password === req.query.password){
+            // console.log( "result",result);
+            if(Object.values(result[0])[0]){
+                res.send({
+                    sucess:true,
+                    ...result[0]
+                })
+            } else{
+                res.send({
+                    sucess:false
+                })
+            }
         } else{
             res.send({
                 sucess:false
             })
-        }
-       
+        }       
+    });
+});
+
+//用户评价作品
+app.post('/user/setScore', function (req, res) {
+    // console.log(req.query)
+    req.on('data', function (data) {
+        obj = JSON.parse(data);
+        console.log(obj);
+        connection.query(`select workCode from user_work where userName = "${obj.userName}" and workCode = "${obj.workCode}"`, function (err, rows, fields) {
+            console.log(rows);
+            if(rows.length === 0){
+                connection.query(`select id from user_work order by id desc`, function (err, rows, fields) {
+                    obj.id = rows[0].id + 1;
+                    connection.query(`insert into user_work set ?`,obj,(err, result) => {
+                        if (err) {
+                          console.log('[增加失败] - ', err.message);
+                          return;
+                        } else{
+                            console.log(result)
+                        }
+                        res.send('数据已接收')
+                    })
+                })
+            } else{
+                connection.query(`update user_work set score=${obj.score} where userName="${obj.userName}" and workCode = "${obj.workCode}"`, function (err, result) {
+                    if (err) throw err;
+                    console.log(result);
+                    res.send("sucess")
+                });
+            }
+        });
+      
+    })
+
+});
+
+//根据用户名查找评价过的作品
+app.get('/user/getSource', function (req, res) {
+    console.log(req.query.userName)
+    connection.query(`select * from allworks where code in (SELECT workCode from user_work where userName = ${req.query.userName})`, function (err, rows, fields) {
+        if (err) throw err;
+        console.log(rows);
+        res.send(
+            {
+                status: 200,
+                data: rows
+            }
+        );
+    });
+});
+
+//根据用户名及作品号查找作品成绩
+app.get('/userCode/getSource', function (req, res) {
+    console.log(req.query.userName)
+    connection.query(`select * from user_work where userName = ${req.query.userName} and workCode = ${req.query.workCode}`, function (err, rows, fields) {
+        if (err) throw err;
+        // console.log(rows[0].score);
+        res.send(
+            {
+                status: 200,
+                data:rows[0].score
+            }
+        );
     });
 });
 
